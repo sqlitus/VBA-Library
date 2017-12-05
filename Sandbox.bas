@@ -380,3 +380,52 @@ Sub CellForEachTest()
     Next headerCell
 
 End Sub
+
+
+
+Sub CheckIfFolderFileExistsAndSave()
+    ' check if directory subfolders exist, and create if necessary. Then save file w/ proper name
+
+    Dim fdObj As Object
+    Dim dir As String
+    Dim yearFolder As String
+    Dim monthFolder As String
+    Dim reportDate As Date
+    
+    ' date of report - (yesterday for CSQAR)
+    reportDate = DateAdd("m", 1, Date)
+    
+    ' invoke file system object reference library
+    Set fdObj = CreateObject("Scripting.FileSystemObject")
+    
+    ' create year & month folders for report's date if they don't exist
+    dir = "\\wfm-team\Team\Retail Support Team\Reporting\CSQ Activity Reports\"
+    yearFolder = "CSQ Activity Reports - " & Format(reportDate, "yyyy") & "\"
+    monthFolder = "CSQ Activity Reports - " & Format(reportDate, "mmmm") & " " & Format(reportDate, "yyyy") & "\"
+    
+    If Not fdObj.FolderExists(dir & yearFolder) Then fdObj.createfolder (dir & yearFolder)
+    If Not fdObj.FolderExists(dir & yearFolder & monthFolder) Then fdObj.createfolder (dir & yearFolder & monthFolder)
+    
+    ' save file (without extras)
+    saveFileName = "CSQ Activity Report - " & Format(reportDate, "mmddyyyy") & ".xlsx"
+    If Not fdObj.FileExists(dir & yearFolder & monthFolder & saveFileName) Then
+        ActiveWorkbook.SaveAs dir & yearFolder & monthFolder & saveFileName, xlWorkbookNormal
+    End If
+     
+End Sub
+
+
+
+Sub DeleteDuplicateRows()
+
+    With ActiveSheet
+        Set rng = Range("A3", Range("B3").End(xlDown))
+        rng.Select
+        
+        rng.RemoveDuplicates Columns:=Array(1, 2), Header:=xlYes
+        Range("a1").RemoveDuplicates
+    End With
+
+End Sub
+
+
