@@ -393,7 +393,7 @@ Sub CheckIfFolderFileExistsAndSave()
     Dim reportDate As Date
     
     ' date of report - (yesterday for CSQAR)
-    reportDate = DateAdd("m", 1, Date)
+    reportDate = DateAdd("d", -1, Date)
     
     ' invoke file system object reference library
     Set fdObj = CreateObject("Scripting.FileSystemObject")
@@ -419,13 +419,47 @@ End Sub
 Sub DeleteDuplicateRows()
 
     With ActiveSheet
-        Set rng = Range("A3", Range("B3").End(xlDown))
+        Set rng = Range("A3", Range("c3").End(xlDown))
         rng.Select
         
-        rng.RemoveDuplicates Columns:=Array(1, 2), Header:=xlYes
-        Range("a1").RemoveDuplicates
+        rng.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlNo
     End With
-
+    
 End Sub
 
 
+
+Sub BreakLinks() ' not working?
+'Updateby20140318
+Dim wb As Workbook
+Set wb = Application.ActiveWorkbook
+If Not IsEmpty(wb.LinkSources(xlExcelLinks)) Then
+    For Each link In wb.LinkSources(xlExcelLinks)
+        wb.BreakLink link, xlLinkTypeExcelLinks
+    Next link
+End If
+End Sub
+
+
+' working with file system objects
+Sub createFileSystemObject()
+    ' method 1 - load Microsoft Scripting Library reference
+    Dim fso As Scripting.FileSystemObject
+    Set fso = New Scripting.FileSystemObject
+    
+            ' method 2 - create file system object without loading library (no intellisense)
+            Dim fdObj As Object
+            Set fdObj = CreateObject("Scripting.FileSystemObject") ' collection class
+    
+    
+    ' get a file [object] & its properties
+    Dim myFile As Scripting.File
+    Set myFile = fso.GetFile("C:\Work\AgileTasks.xlsx")
+    Debug.Print myFile.Attributes, myFile.DateCreated, myFile.DateLastAccessed, myFile.DateLastModified
+    Debug.Print myFile.Drive, myFile.Name, myFile.ParentFolder, myFile.Path
+    Debug.Print myFile.ShortName, myFile.ShortPath, myFile.Size, myFile.Type
+    
+    ' manipulate the file object variable directly
+    myFile.Copy myFile.ParentFolder & "\" & "vba copy of " & myFile.Name
+    
+End Sub
