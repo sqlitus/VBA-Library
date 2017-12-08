@@ -7,7 +7,7 @@ Option Compare Text
 Sub ColorPies()
 
         Dim cht As ChartObject
-        Dim I As Integer
+        Dim i As Integer
         Dim vntValues As Variant
         Dim s As String
         Dim myseries As Series
@@ -19,9 +19,9 @@ Sub ColorPies()
                     s = Split(myseries.Formula, ",")(2)
                     vntValues = myseries.Values
                    
-                    For I = 1 To UBound(vntValues)
-                        myseries.Points(I).Interior.Color = Range(s).Cells(I).Interior.Color
-                    Next I
+                    For i = 1 To UBound(vntValues)
+                        myseries.Points(i).Interior.Color = Range(s).Cells(i).Interior.Color
+                    Next i
 SkipNotPie:
                 Next myseries
             Next cht
@@ -35,8 +35,8 @@ End Sub
 
 
 
-Sub RST_Report()
-Attribute RST_Report.VB_ProcData.VB_Invoke_Func = " \n14"
+Sub OLD_RST_Report()
+Attribute OLD_RST_Report.VB_ProcData.VB_Invoke_Func = " \n14"
 '
 ' RST_Report Macro - for all 4 teams present only
 '
@@ -119,12 +119,12 @@ End Sub
 
 ' loop sheets and get name
 Sub LoopThroughSheets()
-    For I = 1 To Worksheets.count
-            Worksheets(I).Activate
+    For i = 1 To Worksheets.count
+            Worksheets(i).Activate
             If (ActiveSheet.Name Like "*validation schedule*" Or ActiveSheet.Name Like "*other*") Then GoTo NextIteration
         Range("a5").Value = ActiveSheet.Name
 NextIteration:
-    Next I
+    Next i
 End Sub
 
 
@@ -218,11 +218,11 @@ Sub ActiveWorkbookWorksheetCount()
 
     ' count visible sheets
     Dim xSht As Variant
-    Dim I As Long
+    Dim i As Long
     For Each xSht In ActiveWorkbook.Worksheets
-        If xSht.Visible Then I = I + 1
+        If xSht.Visible Then i = i + 1
     Next
-    Range("A2").Value = I
+    Range("A2").Value = i
     
     For count = 1 To ActiveWorkbook.Worksheets.count
         If Worksheets(count).Visible = False _
@@ -233,18 +233,6 @@ NextIteration:
     Next count
 
         
-End Sub
-
-
-' smart rst macro
-Sub SmartRSTMacro()
-    
-    Dim tableStart As Variant
-    tableStart = Range("A1").End(xlDown)
-    
-    Range("A1").Value = tableStart
-    
-    
 End Sub
 
 
@@ -264,7 +252,7 @@ colchoice = "A"
         
         
         With Columns(colchoice)
-            Set searchcell = .Find(what:="*", LookIn:=xlValues)
+            Set searchcell = .Find(What:="*", LookIn:=xlValues)
         End With
         tblstart = searchcell.Address
         tblrow = CInt(Range(tblstart).Row)
@@ -284,9 +272,9 @@ Sub VisibleSheetsCount()
 
     Dim numVisibleSheets As Integer: numVisibleSheets = 0
     
-    For I = 1 To ActiveWorkbook.Worksheets.count
-        If Worksheets(I).Visible = True Then numVisibleSheets = numVisibleSheets + 1
-    Next I
+    For i = 1 To ActiveWorkbook.Worksheets.count
+        If Worksheets(i).Visible = True Then numVisibleSheets = numVisibleSheets + 1
+    Next i
     
     Sheets("Macro").Activate
     Range("A1").Value = numVisibleSheets
@@ -306,9 +294,9 @@ End Sub
 
 ' for loop testing
 Sub ForLoopTest()
-    For I = 1 To 10
-        Cells(I, 1).Value = I
-        If I = 5 Then Exit For
+    For i = 1 To 10
+        Cells(i, 1).Value = i
+        If i = 5 Then Exit For
         
     Next
 End Sub
@@ -336,11 +324,11 @@ Sub SelectTable()
     Dim rFound As Range
     
     On Error Resume Next
-    Set rFound = Cells.Find(what:="*", _
+    Set rFound = Cells.Find(What:="*", _
                     After:=Cells(Rows.count, Columns.count), _
-                    LookAt:=xlPart, _
+                    Lookat:=xlPart, _
                     LookIn:=xlFormulas, _
-                    searchorder:=xlByRows, _
+                    SearchOrder:=xlByRows, _
                     SearchDirection:=xlNext, _
                     MatchCase:=False)
     On Error GoTo 0
@@ -381,38 +369,6 @@ Sub CellForEachTest()
 
 End Sub
 
-
-
-Sub CheckIfFolderFileExistsAndSave()
-    ' check if directory subfolders exist, and create if necessary. Then save file w/ proper name
-
-    Dim fdObj As Object
-    Dim dir As String
-    Dim yearFolder As String
-    Dim monthFolder As String
-    Dim reportDate As Date
-    
-    ' date of report - (yesterday for CSQAR)
-    reportDate = DateAdd("d", -1, Date)
-    
-    ' invoke file system object reference library
-    Set fdObj = CreateObject("Scripting.FileSystemObject")
-    
-    ' create year & month folders for report's date if they don't exist
-    dir = "\\wfm-team\Team\Retail Support Team\Reporting\CSQ Activity Reports\"
-    yearFolder = "CSQ Activity Reports - " & Format(reportDate, "yyyy") & "\"
-    monthFolder = "CSQ Activity Reports - " & Format(reportDate, "mmmm") & " " & Format(reportDate, "yyyy") & "\"
-    
-    If Not fdObj.FolderExists(dir & yearFolder) Then fdObj.createfolder (dir & yearFolder)
-    If Not fdObj.FolderExists(dir & yearFolder & monthFolder) Then fdObj.createfolder (dir & yearFolder & monthFolder)
-    
-    ' save file (without extras)
-    saveFileName = "CSQ Activity Report - " & Format(reportDate, "mmddyyyy") & ".xlsx"
-    If Not fdObj.FileExists(dir & yearFolder & monthFolder & saveFileName) Then
-        ActiveWorkbook.SaveAs dir & yearFolder & monthFolder & saveFileName, xlWorkbookNormal
-    End If
-     
-End Sub
 
 
 
@@ -461,5 +417,54 @@ Sub createFileSystemObject()
     
     ' manipulate the file object variable directly
     myFile.Copy myFile.ParentFolder & "\" & "vba copy of " & myFile.Name
+    
+End Sub
+
+
+Private Sub findCsqarDates()
+    ' REQUIRES: REGEX LIBRARY Microsoft VBScript Regular Expressions 5.5
+    
+    Dim regEx As New RegExp
+    Dim findCell As Range: Set findCell = Cells.Find("*filter*", Cells(Rows.count, Columns.count))
+    
+    Dim startDate As String: startDate = "Starting At"
+    Dim endDate As String
+    
+    With regEx
+        .Pattern = startDate
+    End With
+    
+    If regEx.Test(findCell) Then
+        MsgBox "yes"
+    Else
+        MsgBox "not matched"
+    End If
+    
+End Sub
+
+    
+' subs to help consolidate validations data
+' count num colums, copy & paste correct columns to masterworksheet
+
+Public Function LastOccupiedColNum(Sheet As Worksheet) As Long
+    Dim lng As Long
+    If Application.WorksheetFunction.CountA(Sheet.Cells) <> 0 Then
+        With Sheet
+            lng = .Cells.Find(What:="*", _
+                              After:=.Range("A1"), _
+                              Lookat:=xlPart, _
+                              LookIn:=xlFormulas, _
+                              SearchOrder:=xlByColumns, _
+                              SearchDirection:=xlPrevious, _
+                              MatchCase:=False).column
+        End With
+    Else
+        lng = 1
+    End If
+    LastOccupiedColNum = lng
+End Function
+
+Sub getCoulmns()
+    LastOccupiedColNum (ActiveWorkbook.ActiveSheet)
     
 End Sub
