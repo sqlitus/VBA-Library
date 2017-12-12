@@ -228,11 +228,98 @@ Sub CheckIfFolderExistsAndCreate()
     dir = "C:\Users\Chris\Desktop\"
     folderName = "CSQ " & Format(Date, "mmmm") & " - " & Format(Date, "yyyy")
     
-    If fdObj.FolderExists(dir & folderName) Then
-        MsgBox "Found it.", vbInformation, "Kutools for Excel"
-    Else
+    Debug.Print Environ("UserName")
+    
+    If Not fdObj.FolderExists(dir & folderName) Then
         fdObj.CreateFolder (dir & folderName)
-        MsgBox "It has been created.", vbInformation, "Kutools for Excel"
     End If
     ' Application.ScreenUpdating = True
+End Sub
+
+
+' not working - chrome driver?
+Sub seleniumtutorial()
+    Dim driverName As New WebDriver
+    driverName.start "chrome", "http://www.google.com"
+    driverName.Quit
+End Sub
+
+
+Private Sub ArrayTest()
+    Dim testArray() As Variant
+    Dim rng As Range
+    Dim start As Range: Set start = Range("A1")
+    
+    Set rng = Range(start, Range("A1").End(xlDown))
+    rng.Select
+    Debug.Print rng.Count
+    Debug.Print rng.Cells.Count
+    
+    ReDim testArray(1 To rng.Count)
+    
+    Dim counter As Integer
+    For counter = 1 To rng.Rows.Count
+        testArray(counter) = Range("A1").Offset(counter - 1, 0)
+    Next
+    
+    For counter = 1 To rng.Count
+        Range("A1").Offset(counter - 1, 1).Value = testArray(counter) + 1
+        start.Offset(1, 0).Select
+    Next
+    
+    Erase testArray
+End Sub
+
+
+Private Sub matchColumnsAndPaste()
+    ' copy + paste data columns based on matching column header
+    ' CURRENTLY ONLY WORKS IF ALL DATA COLUMNS IN TABLE HAVE SAME LENGTH
+    
+    Dim headers As Range
+    
+    ' have to select sheet before setting the range equal to the range on that sheet
+    Worksheets("data").Activate
+    Set headers = Sheets("data").Range("A1", Range("A1").End(xlToRight))
+    
+    ' various selection methods
+'    headers(2).Select
+'    headers(2).Offset(1, 0).Select
+'    Debug.Print headers(2).Column
+'    Cells(Columns(2).Rows.Count, 2).End(xlUp).Select
+'    Cells(5, headers(2).Column).Select
+'    Cells(Rows.Count, headers(2).Column).Select     ' select bottom of column
+    
+    Dim dataTable As Range
+    Dim rawData As Range
+    Dim i As Integer
+    
+    For i = 1 To Application.Worksheets.Count
+        Worksheets(i).Activate
+        If Not ActiveSheet.Name Like "data" Then
+            Set dataTable = Range("A1", Range("A1").End(xlDown).End(xlToRight))
+            Set rawData = Range(Range("A1").Offset(1, 0), Range("A1").End(xlDown).End(xlToRight))
+
+            ' loop through each data header vs proper header. paste at the end of the appropriate column on the data tab
+            For j = 1 To dataTable.Rows(1).Columns.Count
+                For k = 1 To headers.Count
+                    Debug.Print dataTable.Rows(1).Columns(j)
+                    Debug.Print headers(k)
+                    If dataTable.Rows(1).Columns(j) Like headers(k) Then
+                        rawData.Columns(j).Copy Worksheets("data").Cells(Rows.Count, headers(k).Column).End(xlUp).Offset(1, 0)
+                    End If
+                Next k
+            Next j
+            
+            ' need to copy only the needed columns
+            ' then need to make sure data input is incremented - not just append to existing columns
+            ' (since it would fll in missing columns)
+            
+            ' something array put in proper dimension based on header order ...
+        End If
+    Next
+End Sub
+
+' copy a range to a diff worksheet works
+Sub cp()
+    Range("A1", Range("A1").End(xlDown)).Copy Worksheets("data").Range("A2")
 End Sub
