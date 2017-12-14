@@ -4,7 +4,7 @@ Option Compare Text
 
 ' colors pie chart data series based on series name
 
-Sub ColorPies()
+Private Sub ColorPies()
 
         Dim cht As ChartObject
         Dim i As Integer
@@ -35,7 +35,7 @@ End Sub
 
 
 
-Sub OLD_RST_Report()
+Private Sub OLD_RST_Report()
 Attribute OLD_RST_Report.VB_ProcData.VB_Invoke_Func = " \n14"
 '
 ' RST_Report Macro - for all 4 teams present only
@@ -43,10 +43,10 @@ Attribute OLD_RST_Report.VB_ProcData.VB_Invoke_Func = " \n14"
 
 '
     Columns("B:B").Select
-    Selection.Delete shift:=xlToLeft
-    Selection.Delete shift:=xlToLeft
+    Selection.Delete Shift:=xlToLeft
+    Selection.Delete Shift:=xlToLeft
     Columns("L:L").Select
-    Selection.Delete shift:=xlToLeft
+    Selection.Delete Shift:=xlToLeft
     ActiveWindow.ScrollColumn = 2
     ActiveWindow.ScrollColumn = 3
     ActiveWindow.ScrollColumn = 4
@@ -54,7 +54,7 @@ Attribute OLD_RST_Report.VB_ProcData.VB_Invoke_Func = " \n14"
     ActiveWindow.ScrollColumn = 6
     ActiveWindow.ScrollColumn = 7
     Columns("P:P").Select
-    Selection.Delete shift:=xlToLeft
+    Selection.Delete Shift:=xlToLeft
     ActiveWindow.ScrollColumn = 6
     ActiveWindow.ScrollColumn = 5
     ActiveWindow.ScrollColumn = 4
@@ -112,13 +112,13 @@ End Sub
 
 
 ' screen update
-Sub screenupdate()
+Private Sub screenupdate()
     Application.ScreenUpdating = True
 End Sub
 
 
 ' loop sheets and get name
-Sub LoopThroughSheets()
+Private Sub LoopThroughSheets()
     For i = 1 To Worksheets.count
             Worksheets(i).Activate
             If (ActiveSheet.Name Like "*validation schedule*" Or ActiveSheet.Name Like "*other*") Then GoTo NextIteration
@@ -131,7 +131,7 @@ End Sub
 
 
 ' delete rows if contains value
-Sub Value()
+Private Sub Value()
 Dim r As Integer
     For r = ActiveSheet.UsedRange.Rows.count To 1 Step -1
         If Cells(r, "A") Like "SVR01" Then
@@ -142,7 +142,7 @@ End Sub
 
 
 ' delete columns if header contains value
-Sub DeleteColumnsByName()
+Private Sub DeleteColumnsByName()
 
 Dim headers As Range
 Dim cell As Range
@@ -160,7 +160,7 @@ End Sub
 
 
 ' select data start and end, delete empty rows. then delete unnecessary header rows
-Sub DeleteEmptyAndBlankRows()
+Private Sub DeleteEmptyAndBlankRows()
 
     Dim datastart As Range
     Dim dataend As Range
@@ -184,7 +184,7 @@ End Sub
 
 
 
-Sub CreateDataDumpSheet()
+Private Sub CreateDataDumpSheet()
     ' create data dump sheet if doesn't exist
     Dim wsTest As Worksheet
     Const strSheetName As String = "FindMe"
@@ -204,14 +204,14 @@ End Sub
 
 
 ' if cell starts with num
-Sub testLeft()
+Private Sub testLeft()
 If Left(ActiveCell.Value, 4) Like "[0-9][0-9][0-9][0-9]" Then Range("A1").Value = "is true"
 End Sub
 
 
 
 ' count sheets, workbooks
-Sub ActiveWorkbookWorksheetCount()
+Private Sub ActiveWorkbookWorksheetCount()
     
     Range("A1").Value = ActiveWorkbook.Worksheets.count
         
@@ -238,7 +238,7 @@ End Sub
 
 
 ' find start of data
-Sub FindDataStart()
+Private Sub FindDataStart()
 
 Dim colchoice As String
 colchoice = "A"
@@ -268,7 +268,7 @@ End Sub
 
 ' visible sheets test
 
-Sub VisibleSheetsCount()
+Private Sub VisibleSheetsCount()
 
     Dim numVisibleSheets As Integer: numVisibleSheets = 0
     
@@ -283,17 +283,22 @@ End Sub
 
 
 
-' various ways of getting end of contiguous data
-Sub LastRowOfData()
+' various ways of getting end of contiguous data, selecting data range
+Private Sub LastRowOfData()
     Cells(Rows.count, 1).End(xlUp).Select
     Range("A1000000").End(xlUp).Offset(1, 0).Select
     Cells(Rows.count, 1).End(xlUp).Select
     Cells(Rows.count, 1).End(xlUp).Offset(1, 0).Select
+    Cells(1, Range("A1").End(xlToRight).column).Select
+    
+    ' bottom right of table
+    Cells(Cells(Rows.count, 1).End(xlUp).Row, Range("A1").End(xlToRight).column).Select
+    
 End Sub
 
 
 ' for loop testing
-Sub ForLoopTest()
+Private Sub ForLoopTest()
     For i = 1 To 10
         Cells(i, 1).Value = i
         If i = 5 Then Exit For
@@ -302,12 +307,12 @@ Sub ForLoopTest()
 End Sub
 
 ' copy and paste VISIBLE rows from a range
-Sub CopyVisibleCells()
+Private Sub CopyVisibleCells()
     Range("A2", Range("A2").End(xlDown).End(xlToRight)).SpecialCells(xlCellTypeVisible).Copy Worksheets("Sheet1").Range("a1")
 End Sub
 
 
-Sub RowsAndColumns()
+Private Sub RowsAndColumns()
     Range("a1").Value = Rows.count
     
     Cells(1, Columns.count).End(xlToLeft).Select
@@ -318,15 +323,15 @@ End Sub
 
 
 
-Sub SelectTable()
+Private Sub SelectTable()
 
     ' find first cell of table
     Dim rFound As Range
     
     On Error Resume Next
     Set rFound = Cells.Find(What:="*", _
-                    After:=Cells(Rows.count, Columns.count), _
-                    Lookat:=xlPart, _
+                    after:=Cells(Rows.count, Columns.count), _
+                    LookAt:=xlPart, _
                     LookIn:=xlFormulas, _
                     SearchOrder:=xlByRows, _
                     SearchDirection:=xlNext, _
@@ -350,7 +355,7 @@ End Sub
 
 
 
-Sub CellForEachTest()
+Private Sub CellForEachTest()
     Dim headerCell As Range
     Dim headers As Range
     
@@ -372,20 +377,20 @@ End Sub
 
 
 
-Sub DeleteDuplicateRows()
+Private Sub DeleteDuplicateRows()
 
     With ActiveSheet
-        Set rng = Range("A3", Range("c3").End(xlDown))
+        Set rng = Range("A1", Range("a1").End(xlDown).End(xlToRight))
         rng.Select
         
-        rng.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlNo
+        rng.RemoveDuplicates Columns:=Array(1, 2, 3, 4), Header:=xlNo
     End With
     
 End Sub
 
 
 
-Sub BreakLinks() ' not working?
+Private Sub BreakLinks() ' not working?
 'Updateby20140318
 Dim wb As Workbook
 Set wb = Application.ActiveWorkbook
@@ -398,7 +403,7 @@ End Sub
 
 
 ' working with file system objects
-Sub createFileSystemObject()
+Private Sub createFileSystemObject()
     ' method 1 - load Microsoft Scripting Library reference
     Dim fso As Scripting.FileSystemObject
     Set fso = New Scripting.FileSystemObject
@@ -451,8 +456,8 @@ Public Function LastOccupiedColNum(Sheet As Worksheet) As Long
     If Application.WorksheetFunction.CountA(Sheet.Cells) <> 0 Then
         With Sheet
             lng = .Cells.Find(What:="*", _
-                              After:=.Range("A1"), _
-                              Lookat:=xlPart, _
+                              after:=.Range("A1"), _
+                              LookAt:=xlPart, _
                               LookIn:=xlFormulas, _
                               SearchOrder:=xlByColumns, _
                               SearchDirection:=xlPrevious, _
@@ -464,7 +469,96 @@ Public Function LastOccupiedColNum(Sheet As Worksheet) As Long
     LastOccupiedColNum = lng
 End Function
 
-Sub getCoulmns()
+Private Sub getCoulmns()
     LastOccupiedColNum (ActiveWorkbook.ActiveSheet)
     
 End Sub
+
+
+Private Sub CopyPasteWithoutLink()
+'    Worksheets("Sheet1").Range("A1:A10").Copy
+'    Worksheets("Sheet2").Range("A1").PasteSpecial xlPasteValuesAndNumberFormats
+
+    Dim thiswkbk As Workbook: Set thiswkbk = ActiveWorkbook
+    
+    Workbooks("Validations Data Consolidator.xlsm").Activate
+    Worksheets("Data").Activate
+    Range("A1", Range("A1").End(xlDown).End(xlToRight)).Copy
+    
+    thiswkbk.Activate
+    Worksheets("Sheet1").Activate
+    Range("A1").PasteSpecial xlPasteFormats
+    Range("A1").PasteSpecial xlPasteValues
+    
+End Sub
+
+
+Private Sub CreateDataSheet()
+        Dim newDataSheet As Worksheet
+        
+        ThisWorkbook.Worksheets.Add after:=ThisWorkbook.Worksheets(ThisWorkbook.Worksheets.count)
+        ActiveSheet.Name = "Data" & ThisWorkbook.Worksheets.count
+        
+        Range("A1").Value = "Date"
+        Range("B1").Value = "Validation Type"
+        Range("C1").Value = "Machine Name"
+        Range("D1").Value = "BU"
+        Range("E1").Value = "Register"
+        Range("F1").Value = "Time Zone"
+        Range("G1").Value = "POS Readiness Status"
+        Range("H1").Value = "Assigned"
+        Range("I1").Value = "Issue with device"
+        Range("J1").Value = "Resolution"
+        Range("K1").Value = "Stuatus"
+        Range("L1").Value = "Follow-up needed"
+        Range("M1").Value = "Software version verified"
+        
+        With Range("a1", Range("A1").End(xlToRight))
+            .Font.Name = "Times New Roman"
+            .Font.Size = 12
+            .Interior.Color = RGB(47, 117, 181)
+            .Font.Color = vbWhite
+            .Font.Bold = True
+            .EntireColumn.AutoFit
+        End With
+End Sub
+
+Private Sub adjColWidth()
+    Range("A1").EntireColumn.ColumnWidth = Range("A1").EntireColumn.ColumnWidth * 1.1
+    With Range("A1").EntireColumn
+        .ColumnWidth = .ColumnWidth * 1.2
+    End With
+    
+    Set test1 = Range("A2")
+    Debug.Print test1.Value
+End Sub
+
+
+Sub REORDER()
+
+        Dim arrColOrder As Variant, ndx As Integer
+        Dim Found As Range, counter As Integer
+        Dim mycols() As Variant
+        
+        'Place the column headers in the end result order you want.
+        arrColOrder = Array("COLUMN 2", "COLUMN 4", "COLUMN 6", "COLUMN 10", "COLUMN 1", _
+                            "COLUMN 9", "COLUMN 3", "COLUMN 8", "COLUMN 7", "COLUMN 5")
+        
+        mycols = Range("A1", Range("A1").End(xlToRight))
+        counter = 1
+        
+        For ndx = LBound(arrColOrder) To UBound(arrColOrder)
+            Set Found = Rows("1:1").Find(arrColOrder(ndx), LookIn:=xlValues, LookAt:=xlWhole, _
+                              SearchOrder:=xlByColumns, SearchDirection:=xlNext, MatchCase:=False)
+            If Not Found Is Nothing Then
+                If Found.column <> counter Then
+                    Found.EntireColumn.Cut
+                    Columns(counter).Insert Shift:=xlToRight
+                    Application.CutCopyMode = False
+                End If
+                counter = counter + 1
+            End If
+        Next ndx
+
+End Sub
+
