@@ -47,7 +47,7 @@ Private Sub RSTReport_SaveToFolders()
     Dim reportDate As Date
     
     ' date of report - (yesterday for CSQAR) ************ test change *************
-    reportDate = DateAdd("d", 1, Date)
+    reportDate = DateAdd("d", -1, Date)
     
     ' invoke file system object reference library
     Set fdObj = CreateObject("Scripting.FileSystemObject")
@@ -93,7 +93,7 @@ Private Sub RSTReport_TransformAndFormatData()
     ' rename columns & row values
     On Error Resume Next
         table.Rows(1).Columns.Find("csq name").Value = "Queue"
-        table.Rows(1).Columns.Replace "dequeued", "Voicemail"
+        table.Rows(1).Columns.Replace "dequeued", "to Voicemail"
         table.Rows(1).Columns.Replace "dequeue", "Voicemail"
         table.Columns(1).Rows.Replace "OPOS_", ""
     On Error GoTo 0
@@ -102,12 +102,19 @@ Private Sub RSTReport_TransformAndFormatData()
     
     ' conditionally highlight cells in table
     Dim check1 As Range
-    Dim cehck2 As Range
+    Dim check2 As Range
+    Dim checkflag As Integer: checkflag = 0
     
     Set check1 = Cells(table.Columns(1).Rows.Find("r10").Row, table.Rows(1).Columns.Find("avg queue time").column)
     
     With check1
-        If Second(.Value) < 120 Then .Interior.Color = RGB(146, 208, 80) Else .Interior.Color = RGB(255, 0, 0)
+        If Minute(.Value) < 2 Then
+            .Interior.Color = RGB(146, 208, 80)
+        Else
+            .Interior.Color = RGB(255, 0, 0)
+            .Font.Color = RGB(255, 255, 255)
+            .Font.Bold = True
+        End If
     End With
     
     
@@ -121,10 +128,12 @@ Private Sub RSTReport_TransformAndFormatData()
             .Interior.Color = RGB(255, 0, 0)
             .Font.Color = RGB(255, 255, 255)
             .Font.Bold = True
+            checkflag = 1
         End If
     End With
     
     ' finish
     tableStart.CurrentRegion.Select
+    If checkflag = 1 Then MsgBox "Breach SLA: Mail to RST.L1.Leadership@wholefoods.com first", Title:="Mailto Steph"
     
 End Sub
