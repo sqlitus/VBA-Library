@@ -323,3 +323,32 @@ End Sub
 Sub cp()
     Range("A1", Range("A1").End(xlDown)).Copy Worksheets("data").Range("A2")
 End Sub
+
+
+
+
+
+
+
+' function to return cross section of row / columns
+Function GetTableCell(ByVal rowHeader As String, ByVal colHeader As String, ByVal table As Range)
+    
+    Set GetTableCell = Cells(table.Columns(1).Rows.Find(rowHeader, MatchCase:=False).Row, table.Rows(1).Columns.Find(colHeader, MatchCase:=False).Column)
+    GetTableCell.Select
+    If GetTableCell.Value > 1 Then GetTableCell.Interior.Color = RGB(100, 99, 99)
+End Function
+
+Sub testSelectFunction()
+    Dim myrange: Set myrange = Range("a1:c4")
+    Set table = myrange
+    rowHeader = "r10"
+    colHeader = "thing"
+    
+    ' myrange.Select
+    Cells(table.Columns(1).Rows.Find(rowHeader, MatchCase:=False).Row, table.Rows(1).Columns.Find(colHeader, MatchCase:=False).Column).Select
+    Call GetTableCell("r10", "queue", myrange)
+    Call GetTableCell("r10", "thing", myrange)
+    
+    
+End Sub
+
