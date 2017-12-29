@@ -326,12 +326,12 @@ End Sub
 Private Sub SelectTable()
 
     ' find first cell of table
-    Dim rFound As Range
+    Dim rfound As Range
     
     On Error Resume Next
-    Set rFound = Cells.Find(What:="*", _
+    Set rfound = Cells.Find(What:="*", _
                     after:=Cells(Rows.count, Columns.count), _
-                    LookAt:=xlPart, _
+                    Lookat:=xlPart, _
                     LookIn:=xlFormulas, _
                     SearchOrder:=xlByRows, _
                     SearchDirection:=xlNext, _
@@ -342,7 +342,7 @@ Private Sub SelectTable()
     ' get table range
     Dim myTable
     
-    Set myTable = Range(rFound, rFound.End(xlDown).End(xlToRight))
+    Set myTable = Range(rfound, rfound.End(xlDown).End(xlToRight))
 
     
     ' delete unneeded columns
@@ -426,23 +426,37 @@ Private Sub createFileSystemObject()
 End Sub
 
 
-Private Sub findCsqarDates()
+Private Sub RegexPracticeToFindCSQARDates()
     ' REQUIRES: REGEX LIBRARY Microsoft VBScript Regular Expressions 5.5
+    ' look here about late binding: http://excelmatters.com/2013/09/23/vba-references-and-early-binding-vs-late-binding/
     
     Dim regEx As New RegExp
-    Dim findCell As Range: Set findCell = Cells.Find("*filter*", Cells(Rows.count, Columns.count))
+'    Dim regEx As Object: Set regEx = CreateObject("VBScript.RegExp") ' ** create object to not have to use reference library
     
-    Dim startDate As String: startDate = "Starting At"
+    Dim findCell As Range: Set findCell = Cells.Find("*filter*", Cells(Rows.count, Columns.count))
+    Dim foundDate As String
+    Dim startDate As String
     Dim endDate As String
     
     With regEx
-        .Pattern = startDate
+        .Pattern = "[\d][\d]/[\d][\d]/[\d][\d][\d][\d]"
+        .Global = True      ' global returns all matches. otherwise, just returns first
     End With
     
+    ' extract pattern
     If regEx.Test(findCell) Then
-        MsgBox "yes"
+        startDate = regEx.Execute(findCell.Value)(0)
+        endDate = regEx.Execute(findCell.Value)(1)
+    
+        MsgBox regEx.Execute(findCell.Value)(0) & " - " & regEx.Execute(findCell.Value)(1) & ". " & regEx.Execute(findCell).count & " num of dates"
+        If startDate = endDate Then
+            MsgBox "same date " & Format(startDate, "yyyy-mm-dd")
+        Else
+            MsgBox "NOT SAME DATE"
+        End If
     Else
-        MsgBox "not matched"
+        MsgBox "Did not find date. Ending macro."
+        Exit Sub
     End If
     
 End Sub
@@ -457,7 +471,7 @@ Public Function LastOccupiedColNum(Sheet As Worksheet) As Long
         With Sheet
             lng = .Cells.Find(What:="*", _
                               after:=.Range("A1"), _
-                              LookAt:=xlPart, _
+                              Lookat:=xlPart, _
                               LookIn:=xlFormulas, _
                               SearchOrder:=xlByColumns, _
                               SearchDirection:=xlPrevious, _
@@ -538,17 +552,15 @@ Sub REORDER()
 
         Dim arrColOrder As Variant, ndx As Integer
         Dim Found As Range, counter As Integer
-        Dim mycols() As Variant
-        
+
         'Place the column headers in the end result order you want.
-        arrColOrder = Array("COLUMN 2", "COLUMN 4", "COLUMN 6", "COLUMN 10", "COLUMN 1", _
-                            "COLUMN 9", "COLUMN 3", "COLUMN 8", "COLUMN 7", "COLUMN 5")
+        arrColOrder = Array("date", "validation type", "machine name", "bu", "register", _
+                            "Time Zone", "pos readiness status")
         
-        mycols = Range("A1", Range("A1").End(xlToRight))
         counter = 1
         
         For ndx = LBound(arrColOrder) To UBound(arrColOrder)
-            Set Found = Rows("1:1").Find(arrColOrder(ndx), LookIn:=xlValues, LookAt:=xlWhole, _
+            Set Found = Rows("1:1").Find(arrColOrder(ndx), LookIn:=xlValues, Lookat:=xlWhole, _
                               SearchOrder:=xlByColumns, SearchDirection:=xlNext, MatchCase:=False)
             If Not Found Is Nothing Then
                 If Found.column <> counter Then
@@ -562,3 +574,125 @@ Sub REORDER()
 
 End Sub
 
+
+Sub testCollections()
+    Dim myCollection As Collection
+    
+    Set myCollection = New Collection
+    
+    myCollection.Add Worksheets("Sheet1"), "myfirstthing"
+    myCollection.Add 5, "my second thing"
+    
+    Debug.Print myCollection.count
+    Debug.Print myCollection(1).Name
+    Debug.Print myCollection("myfirstthing").Name
+    Debug.Print myCollection(2)
+    Debug.Print myCollection("my second thing")
+    
+End Sub
+
+
+
+
+' public sub that finds row & column crosstab intersection, and conditionally formats
+
+Sub TableCellConditionalFormat(ByVal rowHeader As String, ByVal colHeader As String, ByVal SLA As Double)
+
+    Dim check1 As Range
+    
+    Set check1 = Cells(table.Columns(1).Rows.Find(rowVal, MatchCase:=False).Row, _
+        table.Rows(1).Columns.Find(colVal, MatchCase:=False).column)
+        
+    With check1
+        If Minute(.Value) < 2 Then
+            .Interior.Color = RGB(146, 208, 80)
+        Else
+            .Interior.Color = RGB(255, 0, 0)
+            .Font.Color = RGB(255, 255, 255)
+            .Font.Bold = True
+        End If
+    End With
+    
+End Sub
+
+
+
+' naming & selecting worksheets
+
+Sub TestingWithWorksheets()
+    Worksheets("destination").Select
+    ThisWorkbook.Worksheets("destination").Select
+    
+End Sub
+
+
+
+
+Private Sub GetLastRowOfData()
+        ' change .select to .row.
+        ' to get last column, change search order
+        ActiveSheet.Cells.Find(What:="*", _
+                              after:=Range("A1"), _
+                              Lookat:=xlPart, _
+                              LookIn:=xlFormulas, _
+                              SearchOrder:=xlByRows, _
+                              SearchDirection:=xlPrevious, _
+                              MatchCase:=False).Select
+End Sub
+
+Private Sub SelectRangeWithinRange()
+    ' range is in refrerence to the sheet or range object
+    ' you can specify a range within a range
+    Dim table As Range: Set table = Range("B1:D5")
+    table.Select
+    With table
+        Range("A2").Select
+        Cells(1, 1).Select
+        table.Cells(1, 1).Select ' range.cells will select within that range's reference
+        table.Range("A1").Select
+    End With
+    Range("A1").Select
+    table.Range("A1").Select
+    table.Cells(1, 3).Select
+    table.Cells(2, 2).Select
+    table.Range("e7").Select ' you can still select outside the range, using the range as reference
+    
+End Sub
+
+
+
+
+
+'' *** remove duplicates sub & check if sheet exists function
+Private Sub RemoveDuplicates()
+
+    Dim myData As Range
+    Dim before As Long
+    Dim after As Long
+    
+    If Not sheetExists("Data") Then
+        MsgBox "sheet does not exist"
+        Exit Sub
+    End If
+    
+    ThisWorkbook.Worksheets("Data").Activate
+    Set myData = Range("A2", Cells(Cells(Rows.count, 1).End(xlUp).Row, Range("A1").End(xlToRight).column))
+    before = myData.Rows.count
+    
+    myData.RemoveDuplicates Columns:=Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13), Header:=xlNo
+    Set myData = Range("A2", Cells(Cells(Rows.count, 1).End(xlUp).Row, Range("A1").End(xlToRight).column))
+    after = myData.Rows.count
+    
+    MsgBox before - after & " duplicate rows removed.", Title:="Remove Duplicates"
+    
+End Sub
+
+Function sheetExists(sheetToFind As String) As Boolean
+    sheetExists = False
+    For Each Sheet In Worksheets
+        If sheetToFind = Sheet.Name Then
+            sheetExists = True
+            Exit Function
+        End If
+    Next Sheet
+End Function
