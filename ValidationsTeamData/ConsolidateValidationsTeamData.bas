@@ -28,11 +28,17 @@ Sub ConsolidateValidationsData()
         Call CleanData
 
     ' Close source workbook without saving
+'        ThisWorkbook.BreakLink Name:=FilesToOpen(x), Type:=xlExcelLinks
         ActiveWorkbook.Close False
         
         x = x + 1
     Wend
 
+    MsgBox "Data imported successfully.", Title:="Results"
+    
+    ' remove duplicates
+    Call RemoveDuplicates
+    
 ExitHandler:
     Application.ScreenUpdating = True
     Exit Sub
@@ -64,6 +70,9 @@ Sub CleanData()
             
             Set datastart = Range("A2")
             Set dataend = Cells(Rows.Count, 1).End(xlUp)
+            
+    ' ! check if no data in sheet
+            If datastart = dataend Then GoTo NextIteration
     
     ' delete rows with empty first column
             On Error Resume Next
@@ -81,6 +90,10 @@ Sub CleanData()
                     End If
                 Next
   
+    ' ! recheck table range after deletions
+            Set dataend = Cells(Rows.Count, 1).End(xlUp)
+            If datastart = dataend Then GoTo NextIteration
+    
     ' get table column range and row count
             Dim column As Range
             Dim rowCount As Variant
@@ -108,7 +121,7 @@ Sub CleanData()
             Range(datastart.Offset(1, 0).Address & ":" & datastart.Offset(rowCount - 1, 0).Address).Value = sheetName
             
             
-    ' insert column
+    ' insert date column
             Columns("A").Insert shift:=xlToRight, copyorigin:=xlFormatFromLeftOrAbove
             Set datastart = Range("A2")
             datastart.Value = "Date"
@@ -119,11 +132,14 @@ Sub CleanData()
     ' get table data range dimensions
             Dim tbl As Range
             Set tbl = Range(datastart.Offset(1, 0), Cells(datastart.End(xlDown).Row, datastart.End(xlToRight).column))
-            
+    
     ' find first blank in Data sheet, and paste visible rows
             Set lastrow = Workbooks("Validations Data Consolidator.xlsm").Worksheets("Data").Range("A1000000").End(xlUp).Offset(1, 0)
             ' tbl.Copy Destination:=lastrow
-            tbl.SpecialCells(xlCellTypeVisible).Copy lastrow
+            tbl.SpecialCells(xlCellTypeVisible).Copy
+            lastrow.PasteSpecial xlPasteFormats
+            lastrow.PasteSpecial xlPasteValues
+            Application.CutCopyMode = False
 
 'ExitHandler:
 '    Application.ScreenUpdating = True
